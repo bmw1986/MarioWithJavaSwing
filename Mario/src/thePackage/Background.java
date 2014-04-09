@@ -10,6 +10,7 @@ public class Background extends JPanel{
 
 	private int position = 0;
 	private JPanel myPanel;
+	public static Graphics g;
 	private JButton startButton;
 	private ImageIcon backgroundImage;
 	private String theImageLocation = "/Users/Freddy/Desktop/background.png";
@@ -20,6 +21,8 @@ public class Background extends JPanel{
 		this.setPreferredSize(new Dimension(510, 450));
 		this.setBackground(Color.BLACK);
 		this.setFocusable(true);
+		
+		backgroundImage = new ImageIcon(theImageLocation);
 		
 		myPanel = new JPanel();
 		myPanel.setLayout(new BoxLayout(myPanel, BoxLayout.Y_AXIS));
@@ -32,11 +35,11 @@ public class Background extends JPanel{
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				position = 450;			
-				revalidate();
-				repaint();
+				myPanel.revalidate();
+				myPanel.repaint();
 			}
 	    });
-		
+	    
 	    this.add(startButton);
 	}
 	
@@ -44,9 +47,7 @@ public class Background extends JPanel{
 		super.paintComponent(g);
 		
 		Graphics2D g2d = (Graphics2D)g;
-		
-		backgroundImage = new ImageIcon(theImageLocation);
-		g2d.drawImage(backgroundImage.getImage(), -position, 0, this);
+		g2d.drawImage(backgroundImage.getImage(), -position, 0, null);
 		
 		System.out.println(position);
 	}

@@ -10,7 +10,6 @@ public class Mario {
 	private static Image mariosState;
 
 	public Mario() {
-		//TODO
 	}
 
 	public boolean Jump() {
