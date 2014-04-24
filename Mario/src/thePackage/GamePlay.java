@@ -57,9 +57,9 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				boolean justDoIt = ObjectsToHit.checkHere(X_Position+12, Y_Position);
-				boolean justDoIt2 = ObjectsToHit.checkHere_Y(X_Position+16, Y_Position);
+//				boolean justDoIt2 = ObjectsToHit.checkHere_XY(X_Position+10, 'x');
 				if (justDoIt) moveForward();
-				if (justDoIt2 == true) { moveForward(); Y_Position = 360; }
+//				if (justDoIt) { if (justDoIt2) Y_Position = 360; }
 			}});
 		
 		backward = new JButton("<-- ");	
@@ -67,28 +67,18 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				boolean justDoIt = ObjectsToHit.checkHere(X_Position-12, Y_Position);
-				boolean justDoIt2 = ObjectsToHit.checkHere_Y(X_Position-16, Y_Position);
 				if (justDoIt) moveBackward();
-				if (justDoIt2 == true) { moveBackward(); Y_Position = 360; }
 			}});
 		
 		jump = new JButton("Jump Up");
 		jump.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				boolean justDoIt = ObjectsToHit.checkHere(X_Position, 250);
-				//if (justDoIt == true){ moveUpward = true; Y_Position = 300; refresh();}
-				if (justDoIt) jump();
-//				refresh();
+				jump();
 			}});
 
 		add(startButton);
 
-//		setVisible(true);
-//		setSize(510, 450);		
-//		setFocusable(true);
-
-//		setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
 		setPreferredSize(new Dimension(510, 450));
 		setBackground(Color.BLACK);
 		setFocusable(true);
@@ -179,42 +169,32 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 
 		// Pressed R
 		if(nes.getInput() == 'R' && beginGame){
-
+			//TODO
 			if (iWannaGoFast == true) {
-				boolean justDoIt = ObjectsToHit.checkHere(X_Position+12, Y_Position);
-				boolean justDoIt2 = ObjectsToHit.checkHere_Y(X_Position+12, Y_Position);
-				if (justDoIt && justDoIt2) { moveForwardFast(); Y_Position = 360; }
-				else if (justDoIt) moveForward(); 
+				//TODO	
 			} else {
-				boolean justDoIt = ObjectsToHit.checkHere(X_Position+12, Y_Position);
-				if (justDoIt == true) moveForward();
-				boolean justDoIt2 = ObjectsToHit.checkHere_Y(X_Position, Y_Position);
-				if (justDoIt2) { moveForward(); Y_Position = 360; }
+				//TODO			
 			}
 		}
 
 		// Pressed L
 		if(nes.getInput() == 'L' && beginGame){
-
+			//TODO
 			if (iWannaGoFast == true) {
-				boolean justDoIt = ObjectsToHit.checkHere(X_Position-12, Y_Position);
-				if (justDoIt == true) moveBackwardFast();
+				//TODO			
 			} else {
-				boolean justDoIt = ObjectsToHit.checkHere(X_Position-12, Y_Position);
-				if (justDoIt == true) moveBackward();
+				//TODO			
 			}
 		}
 
 		// Pressed Jump (A)
 		if(nes.getInput() == 'A' && beginGame){
-			boolean justDoIt = ObjectsToHit.checkHere(X_Position, 250);
-			//if (justDoIt == true){ moveUpward = true; Y_Position = 300; refresh();}
-			if (justDoIt == true) jump();
+			//TODO			
 		}	
 
 		// Pressed Fast (B)
 		if(nes.getInput() == 'B' && beginGame)
-			iWannaGoFast = true;
+			//TODO
 
 		// Pressed Select (x)
 		if(nes.getInput() == 'X')
@@ -224,10 +204,6 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 
 	@Override
 	public void keyReleased(KeyEvent e) {
-//		if(nes.getInput() == 'A' && beginGame){
-//			boolean justDoIt = ObjectsToHit.checkHere(X_Position, 250);
-//			if (justDoIt == true){ moveUpward = false; Y_Position = 360; refresh();}
-//		}
 
 		if (nes.getInput() == 'B' && beginGame) iWannaGoFast = false;
 	}
@@ -237,9 +213,6 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent event) {
-
-		boolean justDoIt = ObjectsToHit.checkHere(X_Position, Y_Position);
-		if (justDoIt) {
 
 			if (moveUpward == true) {
 				if (count >= 0 && count < 20) {
@@ -251,20 +224,27 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 					refresh();
 				} else if (count >= 25 && count < 45) {
 					Y_Position = Y_Position + 5;
-					boolean result = ObjectsToHit.checkHere(X_Position, Y_Position);
-					if (result == false) timer.stop();
+					boolean result = ObjectsToHit.checkHere_XY(Y_Position, 'y');
+					if (result == false) { 
+						timer.stop(); 
+						moveUpward = false; 
+						count = 0;
+						Y_Position -= 5;
+					}
 					refresh();
 					count ++;
 				} else if (count == 45) {
 					count = 0;
 					timer.stop();
-					Y_Position = 360;
 					moveUpward = false;
 				}
 			}
-		} else if (justDoIt == false){ 
+		
+		else { 
 			timer.stop();
-			Y_Position -= 4;
+//			if (Y_Position <= 360) justDoIt = ObjectsToHit.checkHere_XY(X_Position+4, 'x');
+//			if (justDoIt) Y_Position = 360;
+			Y_Position -= 6;
 		}
 	}
 }
