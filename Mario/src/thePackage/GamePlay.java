@@ -21,7 +21,7 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 	private int accel=10, accelMax=0;
 	private int marioX, marioY, lb, rb, ub, db;
 	public static Graphics g;
-	private boolean showFlag = false, stopMoving = false, beginGame=false, moveUpward = false, moveForward = false, moveBackward = false, iWannaGoFast = false;
+	private boolean dieNow = false, notStopped=true, themeRunning=false, showFlag = false, stopMoving = false, beginGame=false, moveUpward = false, moveForward = false, moveBackward = false, iWannaGoFast = false;
 	private JButton startButton, forward, backward, jump;
 	private ImageIcon marioImage, flag;
 	@SuppressWarnings("unused")
@@ -31,6 +31,7 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 	private String backgroundLocation = "C:/backgroundSimple.jpg";
 	private String marioLocation = "C:/mario2.png";
 	private String flagLocation = "C:/flag.jpg";
+	private Clip clip1, clip2, clip3, clip4;
 	Controller nes = new Controller();
 
 	public GamePlay() throws IOException {		
@@ -75,18 +76,20 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 	}
 
 	public void moveForward() {
+		if (Y_Position > 360) Y_Position = 360;
 		if (stopMoving == false) X_Position = X_Position + 10;
 		refresh();
 	}
 
 	public void moveForwardFast() {
-		
+		if (Y_Position > 360) Y_Position = 360;
 		if (stopMoving == false) X_Position = X_Position + 16;
 		refresh();
 	}
 
 	public void moveBackward() { 
-		X_Position = X_Position - 10;		
+		if (Y_Position > 360) Y_Position = 360;
+		if (stopMoving == false) X_Position = X_Position - 10;		
 		refresh();
 	}
 
@@ -96,7 +99,8 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 	}
 
 	public void moveBackwardFast() {
-		X_Position = X_Position - 16;		
+		if (Y_Position > 360) Y_Position = 360;
+		if (stopMoving == false) X_Position = X_Position - 16;		
 		refresh();
 	}
 
@@ -108,13 +112,13 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 	public void themeSound(){	   
 	    try {
 	    	// Open an audio input stream.
-	    	File soundFile = new File("C:/marioTheme.wav");
-	    	AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
+	    	File soundFile1 = new File("C:/marioTheme.wav");
+	    	AudioInputStream audioIn1 = AudioSystem.getAudioInputStream(soundFile1);
 	        // Get a sound clip resource.
-	        Clip clip = AudioSystem.getClip();
+	        clip1 = AudioSystem.getClip();
 	        // Open audio clip and load samples from the audio input stream.
-	        clip.open(audioIn);
-	        clip.loop(Clip.LOOP_CONTINUOUSLY);
+	        clip1.open(audioIn1);	        
+	        clip1.loop(Clip.LOOP_CONTINUOUSLY);
 	    } catch (UnsupportedAudioFileException e) {
 	    	e.printStackTrace();
 		} catch (IOException e) {
@@ -123,16 +127,20 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 			e.printStackTrace();
 		}
 	}
+	public void stopThemeSound(){	   
+		clip1.stop();
+	}	
+	
 	public void jumpSound(){	   
 	    try {
 	    	// Open an audio input stream.
-	    	File soundFile = new File("C:/marioJump.wav");
-	    	AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
+	    	File soundFile2 = new File("C:/marioJump.wav");
+	    	AudioInputStream audioIn2 = AudioSystem.getAudioInputStream(soundFile2);
 	        // Get a sound clip resource.
-	        Clip clip = AudioSystem.getClip();
+	        clip2 = AudioSystem.getClip();
 	        // Open audio clip and load samples from the audio input stream.
-	        clip.open(audioIn);
-	        clip.start();
+	        clip2.open(audioIn2);
+	        clip2.start();
 	    } catch (UnsupportedAudioFileException e) {
 	    	e.printStackTrace();
 		} catch (IOException e) {
@@ -141,16 +149,34 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 			e.printStackTrace();
 		}
 	}
-	public void diedSound(){	   
+	public void diedSound(){	
 	    try {
 	    	// Open an audio input stream.
-	    	File soundFile = new File("C:/marioTheme.wav");
-	    	AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
+	    	File soundFile3 = new File("C:/marioDeath.wav");
+	    	AudioInputStream audioIn3 = AudioSystem.getAudioInputStream(soundFile3);
 	        // Get a sound clip resource.
-	        Clip clip = AudioSystem.getClip();
+	        clip3 = AudioSystem.getClip();
 	        // Open audio clip and load samples from the audio input stream.
-	        clip.open(audioIn);
-	        clip.loop(Clip.LOOP_CONTINUOUSLY);
+	        clip3.open(audioIn3);
+        	clip3.start();
+	    } catch (UnsupportedAudioFileException e) {
+	    	e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (LineUnavailableException e) {
+			e.printStackTrace();
+		}
+	}
+	public void winSound(){	
+	    try {
+	    	// Open an audio input stream.
+	    	File soundFile4 = new File("C:/marioWin.wav");
+	    	AudioInputStream audioIn4 = AudioSystem.getAudioInputStream(soundFile4);
+	        // Get a sound clip resource.
+	        clip4 = AudioSystem.getClip();
+	        // Open audio clip and load samples from the audio input stream.
+	        clip4.open(audioIn4);
+        	clip4.start();
 	    } catch (UnsupportedAudioFileException e) {
 	    	e.printStackTrace();
 		} catch (IOException e) {
@@ -161,8 +187,10 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 	}
 	
 	public void endGame() {
-		diedSound();
+		notStopped=true;
 		refresh();
+		dieNow = false;
+		stopMoving = false;
 		try {Thread.sleep(2 * 1000);} catch (InterruptedException e1) {	e1.printStackTrace(); }
 		X_Position = 0;
 		Y_Position = 360;
@@ -199,6 +227,11 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 //			}			
 //		}
 	}
+	
+	public void dieAnimation() {
+		
+		timer.start();
+	}
 
 	@Override
 	public void keyPressed(KeyEvent e) {
@@ -211,6 +244,17 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 			themeSound();
 			X_Position = 450;	
 			Y_Position = 360;
+			flagHeight = 90;
+			inTheAir = false;
+			count = 0;
+			showFlag = false;
+			stopMoving = false;
+			dieNow = false;
+			notStopped=true;
+			moveUpward = false;
+			moveForward = false;
+			moveBackward = false;
+			iWannaGoFast = false;
 			refresh(); 
 		}
 
@@ -230,18 +274,34 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 					if (justDoIt) moveForward();
 				}
 				if ((X_Position >= 1410 && X_Position <= 1440) && Y_Position >= 350) {
-					Y_Position = 500;
-					endGame();
+					Y_Position = 380;
+					if(notStopped==true){
+						notStopped=false;
+						stopThemeSound();
+						diedSound();
+						stopMoving = true;
+						dieAnimation();
+						dieNow = true;
+					}
+					
 				}
 				if ((X_Position >= 1950 && X_Position <= 2020) && Y_Position >= 350) {
-					Y_Position = 500;
-					endGame();
+					Y_Position = 380;
+					if(notStopped==true){
+						notStopped=false;
+						stopThemeSound();
+						diedSound();
+						stopMoving = true;
+						dieAnimation();
+						dieNow = true;
+					}
 				}
 				if (X_Position > 2320) {
 					showFlag = true;
-					refresh();
 					stopMoving = true;
+					refresh();
 					timer2.start();
+					
 				}
 			}
 		}
@@ -261,14 +321,27 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 				if (justDoIt) moveBackward();
 			}
 			if ((X_Position >= 1410 && X_Position <= 1440) && Y_Position >= 350) {
-				Y_Position = 500;
-				try {Thread.sleep(2 * 1000);} catch (InterruptedException e1) {	e1.printStackTrace(); }
-				Y_Position = 500;
-				endGame();
+				Y_Position = 380;
+//				try {Thread.sleep(2 * 1000);} catch (InterruptedException e1) {	e1.printStackTrace(); }
+				if(notStopped==true){
+					notStopped=false;
+					stopThemeSound();
+					diedSound();
+					stopMoving = true;
+					dieAnimation();
+					dieNow = true;
+				}
 			}
 			if ((X_Position >= 1950 && X_Position <= 2020) && Y_Position >= 350) {
-				Y_Position = 500;
-				endGame();
+				Y_Position = 380;
+				if(notStopped==true){
+					notStopped=false;
+					stopThemeSound();
+					diedSound();
+					stopMoving = true;
+					dieAnimation();
+					dieNow = true;
+				}
 			}
 		}
 
@@ -304,6 +377,31 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent event) {
 
+		
+		if (dieNow) {
+			
+			if (count >= 0 && count < 20) {
+				Y_Position = Y_Position - 5;
+				count ++;
+				refresh();
+			} else if (count >= 20 && count < 25) {
+				count ++;
+				refresh();
+			} else if (count >= 25 && count < 45) {
+				Y_Position = Y_Position + 10; 
+				count++;
+				refresh();
+			} else if (count == 45) {
+				Y_Position = 400;
+				refresh();
+				count = 0;
+				timer.stop();
+				endGame();
+				dieNow = false;
+			}
+			
+		} else {
+		
 		if (stopMoving == false) {
 		
 			boolean justDoIt = ObjectsToHit.checkHere(X_Position, Y_Position);
@@ -341,16 +439,39 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 				}
 			}
 			if ((X_Position >= 1410 && X_Position <= 1440) && Y_Position >= 350) {
-				Y_Position = 500;
-				endGame();
+				timer.stop();
+				Y_Position = 380;
+				if(notStopped==true){
+					notStopped=false;
+					stopThemeSound();
+					diedSound();
+					stopMoving = true;
+					refresh();
+					dieAnimation();
+					dieNow = true;
+				}
 			}
 			if ((X_Position >= 1950 && X_Position <= 2020) && Y_Position >= 350) {
-				Y_Position = 500;
-				endGame();
+				timer.stop();
+				Y_Position = 380;
+				if(notStopped==true){
+					notStopped=false;
+					stopThemeSound();
+					diedSound();
+					stopMoving = true;
+					refresh();
+					dieAnimation();
+					dieNow = true;
+				}
 			}
 			if (X_Position > 2320) {
 				showFlag = true;
+				stopMoving = true;
+				X_Position = 2320;
+				Y_Position= 360;
+				count = 0;
 				refresh();
+				timer2.start();
 			}
 		} else {
 		
@@ -360,16 +481,16 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 				refresh();
 			} else {
 				timer2.stop();
+				stopThemeSound();
+				winSound();
 				endGame();
 				showFlag = false;
 				
 			}
 		}
 	}
+	}
 }
-
-
-
 
 
 
