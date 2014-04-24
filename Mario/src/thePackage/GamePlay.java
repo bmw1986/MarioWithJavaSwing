@@ -6,35 +6,42 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.*;
+import java.net.URL;
 
+import javax.sound.sampled.*;
 import javax.swing.*;
+import javax.swing.plaf.SliderUI;
 
 @SuppressWarnings("serial")
 public class GamePlay extends JPanel implements KeyListener, ActionListener { 
-
+	
 	private static int x =0, velX = 2, count = 0;
-	private Timer timer;
-	private int X_Position = 0, Y_Position = 360, yInit=0;
+	private Timer timer, timer2;
+	private int flagHeight = 90, X_Position = 0, Y_Position = 360, yInit=0;
 	private int accel=10, accelMax=0;
 	private int marioX, marioY, lb, rb, ub, db;
 	public static Graphics g;
-	private boolean beginGame=false, moveUpward = false, moveForward = false, moveBackward = false, iWannaGoFast = false;
+	private boolean showFlag = false, stopMoving = false, beginGame=false, moveUpward = false, moveForward = false, moveBackward = false, iWannaGoFast = false;
 	private JButton startButton, forward, backward, jump;
-	private ImageIcon marioImage;
+	private ImageIcon marioImage, flag;
 	@SuppressWarnings("unused")
 	private ObjectsToHit bricksAndPipes;
+	private boolean inTheAir = false;
 	private ImageIcon backgroundImage;
-	private String backgroundLocation = "/Users/Freddy/Desktop/background.png";
-	private String marioLocation = "/Users/Freddy/Desktop/mario2.png";
+	private String backgroundLocation = "C:/backgroundSimple.jpg";
+	private String marioLocation = "C:/mario2.png";
+	private String flagLocation = "C:/flag.jpg";
 	Controller nes = new Controller();
 
 	public GamePlay() throws IOException {		
 		super();	
 		addKeyListener( this );		
 		add(nes);
-
+		
 		timer = new Timer(12, this);
+		timer2 = new Timer(12, this);
 
+		flag = new ImageIcon(flagLocation);
 		backgroundImage = new ImageIcon(backgroundLocation);
 		marioImage = new ImageIcon(marioLocation);
 		bricksAndPipes = new ObjectsToHit();
@@ -43,38 +50,10 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 		startButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				add(backward);
-				add(jump);
-				add(forward);
 				remove(startButton);
 				X_Position = 450;	
 				Y_Position = 360;
 				refresh(); 
-			}});
-		
-		forward = new JButton(" -->");	
-		forward.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				boolean justDoIt = ObjectsToHit.checkHere(X_Position+12, Y_Position);
-//				boolean justDoIt2 = ObjectsToHit.checkHere_XY(X_Position+10, 'x');
-				if (justDoIt) moveForward();
-//				if (justDoIt) { if (justDoIt2) Y_Position = 360; }
-			}});
-		
-		backward = new JButton("<-- ");	
-		backward.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				boolean justDoIt = ObjectsToHit.checkHere(X_Position-12, Y_Position);
-				if (justDoIt) moveBackward();
-			}});
-		
-		jump = new JButton("Jump Up");
-		jump.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				jump();
 			}});
 
 		add(startButton);
@@ -87,19 +66,22 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 
 	public void paintComponent(Graphics g) {
 
+		
 		g.drawImage(backgroundImage.getImage(), -X_Position, 0, null);
 		g.drawImage(marioImage.getImage(), 230, Y_Position, 40, 40, null);
+		if (showFlag) g.drawImage(flag.getImage(), 224, flagHeight, null);
 		System.out.println("X: " + X_Position);
 		System.out.println("Y: " + Y_Position);
 	}
 
 	public void moveForward() {
-		X_Position = X_Position + 10;
+		if (stopMoving == false) X_Position = X_Position + 10;
 		refresh();
 	}
 
 	public void moveForwardFast() {
-		X_Position = X_Position + 10;
+		
+		if (stopMoving == false) X_Position = X_Position + 16;
 		refresh();
 	}
 
@@ -109,12 +91,12 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 	}
 
 	public void cheat(){
-		X_Position = 6000;
+		X_Position = 2150;
 		refresh();
 	}
 
 	public void moveBackwardFast() {
-		X_Position = X_Position - 10;		
+		X_Position = X_Position - 16;		
 		refresh();
 	}
 
@@ -122,10 +104,77 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 		revalidate();
 		repaint();
 	}
-
+	
+	public void themeSound(){	   
+	    try {
+	    	// Open an audio input stream.
+	    	File soundFile = new File("C:/marioTheme.wav");
+	    	AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
+	        // Get a sound clip resource.
+	        Clip clip = AudioSystem.getClip();
+	        // Open audio clip and load samples from the audio input stream.
+	        clip.open(audioIn);
+	        clip.loop(Clip.LOOP_CONTINUOUSLY);
+	    } catch (UnsupportedAudioFileException e) {
+	    	e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (LineUnavailableException e) {
+			e.printStackTrace();
+		}
+	}
+	public void jumpSound(){	   
+	    try {
+	    	// Open an audio input stream.
+	    	File soundFile = new File("C:/marioJump.wav");
+	    	AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
+	        // Get a sound clip resource.
+	        Clip clip = AudioSystem.getClip();
+	        // Open audio clip and load samples from the audio input stream.
+	        clip.open(audioIn);
+	        clip.start();
+	    } catch (UnsupportedAudioFileException e) {
+	    	e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (LineUnavailableException e) {
+			e.printStackTrace();
+		}
+	}
+	public void diedSound(){	   
+	    try {
+	    	// Open an audio input stream.
+	    	File soundFile = new File("C:/marioTheme.wav");
+	    	AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
+	        // Get a sound clip resource.
+	        Clip clip = AudioSystem.getClip();
+	        // Open audio clip and load samples from the audio input stream.
+	        clip.open(audioIn);
+	        clip.loop(Clip.LOOP_CONTINUOUSLY);
+	    } catch (UnsupportedAudioFileException e) {
+	    	e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (LineUnavailableException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void endGame() {
+		diedSound();
+		refresh();
+		try {Thread.sleep(2 * 1000);} catch (InterruptedException e1) {	e1.printStackTrace(); }
+		X_Position = 0;
+		Y_Position = 360;
+		beginGame = false;
+	}
 
 	public void jump() {		//boolean result = ObjectsToHit.checkHere(X_Position, Y_Position);		
-//		if (moveUpward == true) {
+
+		moveUpward = true;
+		timer.start();
+		
+		//		if (moveUpward == true) {
 //			if(count==0){
 //				yInit = Y_Position;
 //				accelMax = accel;
@@ -149,9 +198,6 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 //				Y_Position = yInit;
 //			}			
 //		}
-
-		moveUpward = true;
-		timer.start();
 	}
 
 	@Override
@@ -162,6 +208,7 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 		if(nes.getInput() == 'Y' && !beginGame){		
 			beginGame=true;
 			remove(startButton);
+			themeSound();
 			X_Position = 450;	
 			Y_Position = 360;
 			refresh(); 
@@ -169,39 +216,82 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 
 		// Pressed R
 		if(nes.getInput() == 'R' && beginGame){
-			//TODO
-			if (iWannaGoFast == true) {
-				//TODO	
-			} else {
-				//TODO			
+
+			if (stopMoving == false) {
+				if (iWannaGoFast == true) {
+					boolean justDoIt = ObjectsToHit.checkHere(X_Position+12, Y_Position-4);
+					boolean goDown = ObjectsToHit.checkHere_X(X_Position);	
+					if (inTheAir) { if (goDown) { Y_Position = 360; inTheAir = false; moveForwardFast(); }}
+					if (justDoIt) moveForwardFast();
+				} else {
+					boolean justDoIt = ObjectsToHit.checkHere(X_Position+12, Y_Position-4);
+					boolean goDown = ObjectsToHit.checkHere_X(X_Position);	
+					if (inTheAir) { if (goDown) { Y_Position = 360; inTheAir = false; moveForward(); }}
+					if (justDoIt) moveForward();
+				}
+				if ((X_Position >= 1410 && X_Position <= 1440) && Y_Position >= 350) {
+					Y_Position = 500;
+					endGame();
+				}
+				if ((X_Position >= 1950 && X_Position <= 2020) && Y_Position >= 350) {
+					Y_Position = 500;
+					endGame();
+				}
+				if (X_Position > 2320) {
+					showFlag = true;
+					refresh();
+					stopMoving = true;
+					timer2.start();
+				}
 			}
 		}
 
 		// Pressed L
 		if(nes.getInput() == 'L' && beginGame){
-			//TODO
+
 			if (iWannaGoFast == true) {
-				//TODO			
+				boolean justDoIt = ObjectsToHit.checkHere(X_Position-12, Y_Position-4);
+				boolean goDown = ObjectsToHit.checkHere_X(X_Position);
+				if (inTheAir) { if (goDown) { Y_Position = 360; inTheAir = false; moveBackwardFast(); }}
+				if (justDoIt) moveBackwardFast();
 			} else {
-				//TODO			
+				boolean justDoIt = ObjectsToHit.checkHere(X_Position-12, Y_Position-4);
+				boolean goDown = ObjectsToHit.checkHere_X(X_Position);
+				if (inTheAir) { if (goDown) { Y_Position = 360; inTheAir = false; moveBackward(); }}
+				if (justDoIt) moveBackward();
+			}
+			if ((X_Position >= 1410 && X_Position <= 1440) && Y_Position >= 350) {
+				Y_Position = 500;
+				try {Thread.sleep(2 * 1000);} catch (InterruptedException e1) {	e1.printStackTrace(); }
+				Y_Position = 500;
+				endGame();
+			}
+			if ((X_Position >= 1950 && X_Position <= 2020) && Y_Position >= 350) {
+				Y_Position = 500;
+				endGame();
 			}
 		}
 
 		// Pressed Jump (A)
 		if(nes.getInput() == 'A' && beginGame){
-			//TODO			
+			boolean justDoIt = ObjectsToHit.checkHere(X_Position, 250);
+			jumpSound();
+			if (justDoIt == true) jump();
 		}	
 
 		// Pressed Fast (B)
 		if(nes.getInput() == 'B' && beginGame)
-			//TODO
+			iWannaGoFast = true;
 
 		// Pressed Select (x)
 		if(nes.getInput() == 'X')
 			cheat();
-
 	}
 
+//	public void startTimer2() {
+//		timer2.start();
+//	}
+//	
 	@Override
 	public void keyReleased(KeyEvent e) {
 
@@ -214,37 +304,95 @@ public class GamePlay extends JPanel implements KeyListener, ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent event) {
 
-			if (moveUpward == true) {
-				if (count >= 0 && count < 20) {
-					Y_Position = Y_Position - 5;
-					count ++;
-					refresh();
-				} else if (count >= 20 && count < 25) {
-					count ++;
-					refresh();
-				} else if (count >= 25 && count < 45) {
-					Y_Position = Y_Position + 5;
-					boolean result = ObjectsToHit.checkHere_XY(Y_Position, 'y');
-					if (result == false) { 
-						timer.stop(); 
-						moveUpward = false; 
+		if (stopMoving == false) {
+		
+			boolean justDoIt = ObjectsToHit.checkHere(X_Position, Y_Position);
+			if (justDoIt) {
+	
+				if (moveUpward == true) {
+					if (count >= 0 && count < 20) {
+						Y_Position = Y_Position - 5;
+						count ++;
+						refresh();
+					} else if (count >= 20 && count < 25) {
+						count ++;
+						refresh();
+					} else if (count >= 25 && count < 45) {
+						Y_Position = Y_Position + 5;
+						boolean result = ObjectsToHit.checkHere(X_Position, Y_Position);
+						if (result == false) { 
+							timer.stop(); 
+							moveUpward = false; 
+							count = 0;
+							Y_Position -= 5;
+							inTheAir = true;
+						}
+						refresh();
+						count ++;
+					} else if (count == 45) {
 						count = 0;
-						Y_Position -= 5;
+						timer.stop();
+						moveUpward = false;
 					}
-					refresh();
-					count ++;
-				} else if (count == 45) {
-					count = 0;
+	
+				} else { 
 					timer.stop();
-					moveUpward = false;
+					Y_Position -= 6;
 				}
 			}
+			if ((X_Position >= 1410 && X_Position <= 1440) && Y_Position >= 350) {
+				Y_Position = 500;
+				endGame();
+			}
+			if ((X_Position >= 1950 && X_Position <= 2020) && Y_Position >= 350) {
+				Y_Position = 500;
+				endGame();
+			}
+			if (X_Position > 2320) {
+				showFlag = true;
+				refresh();
+			}
+		} else {
 		
-		else { 
-			timer.stop();
-//			if (Y_Position <= 360) justDoIt = ObjectsToHit.checkHere_XY(X_Position+4, 'x');
-//			if (justDoIt) Y_Position = 360;
-			Y_Position -= 6;
+			if (count >= 0 && count < 47) {
+				count ++;
+				flagHeight += 5;
+				refresh();
+			} else {
+				timer2.stop();
+				endGame();
+				showFlag = false;
+				
+			}
 		}
 	}
 }
+
+
+
+
+
+
+//forward = new JButton(" -->");	
+//forward.addActionListener(new ActionListener() {
+//	@Override
+//	public void actionPerformed(ActionEvent e) {
+//		boolean justDoIt = ObjectsToHit.checkHere(X_Position+12, Y_Position);
+//		if (justDoIt) moveForward();
+//	}});
+//
+//backward = new JButton("<-- ");	
+//backward.addActionListener(new ActionListener() {
+//	@Override
+//	public void actionPerformed(ActionEvent e) {
+//		boolean justDoIt = ObjectsToHit.checkHere(X_Position-12, Y_Position);
+//		if (justDoIt) moveBackward();
+//	}});
+//
+//jump = new JButton("Jump Up");
+//jump.addActionListener(new ActionListener() {
+//	@Override
+//	public void actionPerformed(ActionEvent e) {
+//		boolean justDoIt = ObjectsToHit.checkHere(X_Position, 250);
+//		if (justDoIt) jump();
+//	}});
